@@ -1,0 +1,53 @@
+ 1. WAP that accepts user name and reports if user is logged in.
+
+#!/bin/bash
+
+echo "Enter username to check if logged in:"
+read username
+
+if who | grep -q "^$username"; then
+  echo "User $username is logged in."
+else
+  echo "User $username is not logged in."
+fi
+
+
+ 2. WAP which displays the following menu and executes the option selected by user: a. ls b. pwd c. ls l d. psfe
+
+
+#!/bin/bash
+
+echo "Select an option:"
+echo "a. ls"
+echo "b. pwd"
+echo "c. ls -l"
+echo "d. ps -fe"
+
+read -p "Enter your choice (a/b/c/d): " choice
+
+case $choice in
+  a) ls ;;
+  b) pwd ;;
+  c) ls -l ;;
+  d) ps -fe ;;
+  *) echo "Invalid option. Please choose a valid menu option." ;;
+esac
+
+ 3. WAP that replaces all “*.txt” file names with “*.txt.old” in the current working directory.
+#!/bin/bash
+
+for file in *.txt; do
+  if [ -f "$file" ]; then
+    mv "$file" "${file}.old"
+    echo "Renamed $file to ${file}.old"
+  fi
+done
+
+
+ 4. WAP that echoes itself to stdout, but backwards.  
+
+#!/bin/bash
+
+# Reverse the content of the script file
+tac "$0" | rev
+

@@ -1,0 +1,94 @@
+// #include <stdio.h>
+// #include <stdbool.h>
+
+// #define PROCESSES 4
+// #define RESOURCES 3
+
+// // Input data from the example
+// int available[RESOURCES] = {3, 3, 0};
+
+// int maximum[PROCESSES][RESOURCES] = {
+//     {4, 3, 1},
+//     {2, 1, 4},
+//     {1, 3, 3},
+//     {5, 4, 1}
+// };
+
+// int allocation[PROCESSES][RESOURCES] = {
+//     {1, 0, 1},
+//     {1, 1, 2},
+//     {1, 0, 3},
+//     {2, 0, 0}
+// };
+
+// int need[PROCESSES][RESOURCES]; // Calculated Need Matrix
+
+// // Function to calculate the Need Matrix
+// void calculateNeed() {
+//     for (int i = 0; i < PROCESSES; i++) {
+//         for (int j = 0; j < RESOURCES; j++) {
+//             need[i][j] = maximum[i][j] - allocation[i][j];
+//         }
+//     }
+// }
+
+// // Function to check if the system is in a safe state
+// bool isSafe() {
+//     bool finish[PROCESSES] = {0};  // Finish array to track completed processes
+//     int safeSequence[PROCESSES];  // To store the safe sequence
+//     int work[RESOURCES];          // Work array for available resources
+
+//     // Initialize work as available
+//     for (int i = 0; i < RESOURCES; i++) {
+//         work[i] = available[i];
+//     }
+
+//     int count = 0; // Count of processes in the safe sequence
+
+//     while (count < PROCESSES) {
+//         bool found = false;
+
+//         for (int i = 0; i < PROCESSES; i++) {
+//             if (!finish[i]) {
+//                 bool canAllocate = true;
+
+//                 // Check if resources can be allocated to process i
+//                 for (int j = 0; j < RESOURCES; j++) {
+//                     if (need[i][j] > work[j]) {
+//                         canAllocate = false;
+//                         break;
+//                     }
+//                 }
+
+//                 if (canAllocate) {
+//                     // Allocate resources to process i and mark it as finished
+//                     for (int j = 0; j < RESOURCES; j++) {
+//                         work[j] += allocation[i][j];
+//                     }
+//                     safeSequence[count++] = i;
+//                     finish[i] = true;
+//                     found = true;
+//                 }
+//             }
+//         }
+
+//         if (!found) {
+//             printf("System is not in a safe state.\n");
+//             return false;
+//         }
+//     }
+
+//     // Print the safe sequence
+//     printf("System is in a safe state.\nSafe sequence: ");
+//     for (int i = 0; i < PROCESSES; i++) {
+//         printf("P%d ", safeSequence[i]);
+//     }
+//     printf("\n");
+//     return true;
+// }
+
+// int main() {
+//     calculateNeed(); // Calculate the need matrix
+//     isSafe();        // Check if the system is in a safe state
+//     return 0;
+// }

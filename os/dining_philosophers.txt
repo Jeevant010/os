@@ -1,0 +1,70 @@
+#include <iostream>
+#include <thread>
+#include <semaphore> // C++20 semaphore
+#include <vector>
+#include <chrono>
+#include <memory> // For unique_ptr
+
+using namespace std;
+
+// Global variables
+int num;                                // Number of philosophers
+vector<unique_ptr<binary_semaphore>> forks; // Vector of pointers to semaphores
+vector<thread> philosophers;           // Vector of philosopher threads
+
+// Philosopher function
+void philosopher(int id) {
+    int left = id;                      // Left fork index
+    int right = (id + 1) % num;         // Right fork index
+
+    while (true) {                      // Infinite loop (for simulation)
+        // Thinking
+        cout << "Philosopher " << id << " is thinking\n";
+        this_thread::sleep_for(chrono::milliseconds(1000));
+
+        // Picking up forks
+        if (id % 2 == 0) {              // Even philosophers pick left fork first
+            forks[left]->acquire();
+            cout << "Philosopher " << id << " picked up left fork " << left << endl;
+            forks[right]->acquire();
+            cout << "Philosopher " << id << " picked up right fork " << right << endl;
+        } else {                        // Odd philosophers pick right fork first
+            forks[right]->acquire();
+            cout << "Philosopher " << id << " picked up right fork " << right << endl;
+            forks[left]->acquire();
+            cout << "Philosopher " << id << " picked up left fork " << left << endl;
+        }
+
+        // Eating
+        cout << "Philosopher " << id << " is eating\n";
+        this_thread::sleep_for(chrono::milliseconds(1000));
+
+        // Putting down forks
+        forks[left]->release();
+        cout << "Philosopher " << id << " put down left fork " << left << endl;
+        forks[right]->release();
+        cout << "Philosopher " << id << " put down right fork " << right << endl;
+    }
+}
+
+int main() {
+    cout << "Enter the number of philosophers: ";
+    cin >> num;
+
+    // Initialize forks (binary semaphores with initial value 1)
+    for (int i = 0; i < num; ++i) {
+        forks.push_back(make_unique<binary_semaphore>(1));
+    }
+
+    // Create philosopher threads
+    for (int i = 0; i < num; ++i) {
+        philosophers.push_back(thread(philosopher, i));
+    }
+
+    // Join philosopher threads using a normal for loop
+    for (size_t i = 0; i < philosophers.size(); ++i) {
+        philosophers[i].join();
+    }
+
+    return 0;
+}

@@ -1,0 +1,82 @@
+#include<iostream>
+#include<vector>
+using namespace std;
+
+struct Process {
+    int pid;               // Process ID
+    int burst_time;        // Burst time of the process
+    int remaining_time;    // Remaining burst time during execution
+    int waiting_time;      // Waiting time for the process
+    int turn_around_time;  // Turnaround time for the process
+};
+
+void RoundRobin(vector<Process>& proc, int quantum) {
+    int time = 0;    // Time counter
+    int completed = 0;   // Number of processes completed
+    
+    // Initialize remaining_time for each process
+    for (auto& p : proc) {
+        p.remaining_time = p.burst_time;
+    }
+
+    // Process each process in a round-robin fashion
+    while (completed < proc.size()) {
+        for (auto& p : proc) {
+            if (p.remaining_time > 0) {
+                // Execute for a time quantum or the remaining time of the process
+                if (p.remaining_time > quantum) {
+                    time += quantum;
+                    p.remaining_time -= quantum;
+                } else {
+                    time += p.remaining_time;
+                    p.waiting_time = time - p.burst_time;
+                    p.turn_around_time = time;
+                    p.remaining_time = 0;
+                    completed++;
+                }
+            }
+        }
+    }
+}
+
+void printStats(const vector<Process>& proc) {
+    int total_wt = 0, total_tat = 0;
+    
+    cout << "\nProcess\t\tBurst Time\tWaiting Time\tTurn Around Time\n";
+    
+    for (const auto& p : proc) {
+        cout << p.pid << "\t\t" << p.burst_time << "\t\t" << p.waiting_time << "\t\t" << p.turn_around_time << endl;
+        total_wt += p.waiting_time;
+        total_tat += p.turn_around_time;
+    }
+    
+    cout << "\nAverage waiting time = " << (float)total_wt / proc.size();
+    cout << "\nAverage turn around time = " << (float)total_tat / proc.size() << endl;
+}
+
+int main() {
+    int n, quantum;
+    
+    cout << "Enter number of processes: ";
+    cin >> n;
+    
+    vector<Process> proc(n);
+    
+    // Input burst times for each process
+    for (int i = 0; i < n; i++) {
+        proc[i].pid = i + 1;
+        cout << "Enter burst time for process " << proc[i].pid << ": ";
+        cin >> proc[i].burst_time;
+    }
+
+    cout << "Enter time quantum: ";
+    cin >> quantum;
+
+    // Apply Round Robin scheduling
+    RoundRobin(proc, quantum);
+
+    // Print the statistics
+    printStats(proc);
+    
+    return 0;
+}

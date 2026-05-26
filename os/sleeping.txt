@@ -1,0 +1,90 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+#define NUM_CHAIRS 3  // Number of waiting chairs
+#define NUM_CUSTOMERS 10  // Number of customers
+
+// Semaphores for synchronization
+sem_t barber_ready;  // Semaphore for the barber
+sem_t customer_ready;  // Semaphore for the customer
+sem_t mutex;  // Mutex to protect shared data (waiting customers count)
+
+int waiting_customers = 0;  // The number of waiting customers
+
+// Function for the barber to cut hair
+void* barber(void* arg) {
+    while (1) {
+        sem_wait(&customer_ready);  // Wait for a customer to arrive
+        sem_wait(&mutex);  // Lock the mutex to update waiting_customers
+        waiting_customers--;  // One customer will get their hair cut
+        sem_post(&mutex);  // Unlock the mutex
+        sem_post(&barber_ready);  // Let the barber cut the hair (signaling barber is ready)
+
+        // Simulate the time taken to cut the hair
+        printf("Barber is cutting hair.\n");
+        sleep(2);  // Time taken to cut hair
+    }
+    return NULL;
+}
+
+// Function for the customer to either wait or leave
+void* customer(void* arg) {
+    int id = *((int*)arg);
+
+    // Try to get a seat in the waiting area
+    sem_wait(&mutex);  // Lock the mutex to check if there is a seat
+    if (waiting_customers < NUM_CHAIRS) {
+        waiting_customers++;  // Take a seat in the waiting area
+        printf("Customer %d is waiting.\n", id);
+        sem_post(&customer_ready);  // Notify the barber that there is a customer waiting
+        sem_post(&mutex);  // Unlock the mutex
+
+        sem_wait(&barber_ready);  // Wait for the barber to be ready
+        printf("Customer %d is getting a haircut.\n", id);
+    } else {
+        // If there is no seat, the customer leaves
+        printf("Customer %d leaves (no seat available).\n", id);
+        sem_post(&mutex);  // Unlock the mutex
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t barber_thread, customer_threads[NUM_CUSTOMERS];
+    int customer_ids[NUM_CUSTOMERS];
+
+    // Initialize semaphores
+    sem_init(&barber_ready, 0, 0);  // Barber starts out sleeping
+    sem_init(&customer_ready, 0, 0);  // No customers at the beginning
+    sem_init(&mutex, 0, 1);  // Mutex for protecting shared data
+
+    // Create the barber thread
+    pthread_create(&barber_thread, NULL, barber, NULL);
+
+    // Create customer threads
+    for (int i = 0; i < NUM_CUSTOMERS; i++) {
+        customer_ids[i] = i + 1;  // Assign customer IDs
+        pthread_create(&customer_threads[i], NULL, customer, &customer_ids[i]);
+        sleep(1);  // New customer arrives every second
+    }
+
+    // Wait for all customer threads to finish
+    for (int i = 0; i < NUM_CUSTOMERS; i++) {
+        pthread_join(customer_threads[i], NULL);
+    }
+
+    // Join the barber thread (in a real-world scenario, this would run indefinitely)
+    pthread_cancel(barber_thread);  // Stop the barber after all customers are done
+    pthread_join(barber_thread, NULL);
+
+    // Destroy semaphores
+    sem_destroy(&barber_ready);
+    sem_destroy(&customer_ready);
+    sem_destroy(&mutex);
+
+    return 0;
+}
+

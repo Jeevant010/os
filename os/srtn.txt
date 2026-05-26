@@ -1,0 +1,82 @@
+#include <iostream>
+#include <vector>
+#include <climits>
+using namespace std;
+
+struct Process {
+    int pid, burst_time, remaining_time, waiting_time, turn_around_time, arrival_time;
+};
+
+void SRTN(vector<Process>& proc) {
+    int time = 0, completed = 0, shortest = 0, min_burst = INT_MAX;
+    bool found = false;
+
+    while (completed != proc.size()) {
+        for (int i = 0; i < proc.size(); i++) {
+            // Check if the process has arrived and is still not completed
+            if (proc[i].arrival_time <= time && proc[i].remaining_time > 0 && proc[i].remaining_time < min_burst) {
+                min_burst = proc[i].remaining_time;
+                shortest = i;
+                found = true;
+            }
+        }
+
+        if (!found) {
+            time++;  // No process is ready, so just increment time
+            continue;
+        }
+
+        // Decrease the remaining burst time of the selected process
+        proc[shortest].remaining_time--;
+
+        // If the process is completed, calculate its turn-around time and waiting time
+        if (proc[shortest].remaining_time == 0) {
+            completed++;
+            found = false;
+            proc[shortest].turn_around_time = time + 1 - proc[shortest].arrival_time;
+            proc[shortest].waiting_time = proc[shortest].turn_around_time - proc[shortest].burst_time;
+        }
+
+        // Reset min_burst for the next iteration
+        if (proc[shortest].remaining_time == 0) {
+            min_burst = INT_MAX;
+        }
+
+        time++;
+    }
+}
+
+void printStats(const vector<Process>& proc) {
+    int total_wt = 0, total_tat = 0;
+    cout << "\nProcess\t\tBurst Time\tWaiting Time\tTurn Around Time\n";
+    for (const auto& p : proc) {
+        cout << p.pid << "\t\t" << p.burst_time << "\t\t" << p.waiting_time << "\t\t" << p.turn_around_time << endl;
+        total_wt += p.waiting_time;
+        total_tat += p.turn_around_time;
+    }
+    cout << "\nAverage waiting time = " << (float)total_wt / proc.size();
+    cout << "\nAverage turn around time = " << (float)total_tat / proc.size() << endl;
+}
+
+int main() {
+    int n;
+    cout << "Enter number of processes: ";
+    cin >> n;
+
+    vector<Process> proc(n);
+
+    for (int i = 0; i < n; i++) {
+        proc[i].pid = i + 1;
+        cout << "Enter burst time and arrival time for process " << proc[i].pid << ": ";
+        cin >> proc[i].burst_time >> proc[i].arrival_time;
+        proc[i].remaining_time = proc[i].burst_time;
+    }
+
+    // Run SRTN scheduling
+    SRTN(proc);
+
+    // Print statistics
+    printStats(proc);
+
+    return 0;
+}

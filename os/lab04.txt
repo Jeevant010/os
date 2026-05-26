@@ -1,0 +1,133 @@
+ 1.Write a shell script to print numbers in descending order using while loop.
+
+#!/bin/bash
+
+echo "Enter the starting number:"
+read start
+
+echo "Numbers in descending order:"
+while [ $start -ge 0 ]; do
+  echo $start
+  start=$((start - 1))
+done
+
+
+ 2. Write a shell script to create a simple calculator using switch-case statement.
+
+#!/bin/bash
+
+echo "Enter first number:"
+read num1
+echo "Enter second number:"
+read num2
+
+echo "Select an operation: + - * /"
+read op
+
+case $op in
+  +) echo "Result: $((num1 + num2))" ;;
+  -) echo "Result: $((num1 - num2))" ;;
+  \*) echo "Result: $((num1 * num2))" ;;
+  /) echo "Result: $((num1 / num2))" ;;
+  *) echo "Invalid operation" ;;
+esac
+
+
+ 3. Write a shell script to print given number in reverse order
+
+#!/bin/bash
+
+echo "Enter a number:"
+read num
+reverse=0
+
+while [ $num -gt 0 ]; do
+  digit=$((num % 10))
+  reverse=$((reverse * 10 + digit))
+  num=$((num / 10))
+done
+
+echo "Reversed number: $reverse"
+.
+ 4. Write a shell script to print sum of all digits of a given number.
+
+#!/bin/bash
+
+echo "Enter a number:"
+read num
+sum=0
+
+while [ $num -gt 0 ]; do
+  digit=$((num % 10))
+  sum=$((sum + digit))
+  num=$((num / 10))
+done
+
+echo "Sum of digits: $sum"
+
+
+ 5. Find the factorial value of given input number.
+
+#!/bin/bash
+
+echo "Enter a number:"
+read num
+factorial=1
+
+for ((i=1; i<=num; i++)); do
+  factorial=$((factorial * i))
+done
+
+echo "Factorial: $factorial"
+
+
+ 6. Generate and display Fibonacci series.
+
+#!/bin/bash
+
+echo "Enter the number of terms for the Fibonacci series:"
+read n
+
+a=0
+b=1
+
+echo "Fibonacci series:"
+for ((i=0; i<n; i++)); do
+  echo $a
+  fib=$((a + b))
+  a=$b
+  b=$fib
+done
+
+
+ 7. Display all even numbers within given range.
+
+#!/bin/bash
+
+echo "Enter the starting number:"
+read start
+echo "Enter the ending number:"
+read end
+
+echo "Even numbers in the range:"
+for ((i=start; i<=end; i++)); do
+  if [ $((i % 2)) -eq 0 ]; then
+    echo $i
+  fi
+done
+
+
+ 8. Find out number of characters, words and lines from a given file  
+
+#!/bin/bash
+
+echo "Enter the filename:"
+read file
+
+if [ -f $file ]; then
+  echo "Number of characters: $(wc -m < $file)"
+  echo "Number of words: $(wc -w < $file)"
+  echo "Number of lines: $(wc -l < $file)"
+else
+  echo "File does not exist."
+fi

@@ -1,0 +1,40 @@
+#include <stdio.h>
+
+void fcfs(int n, int burst[], int arrival[]) {
+    int wait[n], tat[n], start_time[n], finish_time[n];
+    int total_wait = 0, total_tat = 0;
+
+    // Calculate waiting time and turn-around time
+    for (int i = 0; i < n; i++) {
+        if (i == 0) {
+            start_time[i] = arrival[i];
+        } else {
+            start_time[i] = (start_time[i - 1] + burst[i - 1] > arrival[i]) ? start_time[i - 1] + burst[i - 1] : arrival[i];
+        }
+        finish_time[i] = start_time[i] + burst[i];
+        wait[i] = start_time[i] - arrival[i];
+        tat[i] = finish_time[i] - arrival[i];
+
+        total_wait += wait[i];
+        total_tat += tat[i];
+    }
+
+    // Display results
+    printf("Process\tArrival\tBurst\tWaiting\tTurn-Around\n");
+    for (int i = 0; i < n; i++) {
+        printf("P%d\t%d\t%d\t%d\t%d\n", i + 1, arrival[i], burst[i], wait[i], tat[i]);
+    }
+    printf("Average Waiting Time: %.2f\n", (float)total_wait / n);
+    printf("Average Turn-Around Time: %.2f\n", (float)total_tat / n);
+}
+
+int main() {
+    int n = 4;
+    int burst[] = {6, 8, 7, 3};
+    int arrival[] = {0, 1, 2, 3};
+
+    printf("First-Come, First-Served Scheduling\n");
+    fcfs(n, burst, arrival);
+
+    return 0;
+}

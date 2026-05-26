@@ -1,0 +1,72 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define NUM_FRAMES 4
+
+// Struct for representing each page in memory
+typedef struct {
+    int page_number;
+    int reference_bit;
+} Page;
+
+void clockReplacement(int pages[], int num_pages) {
+    Page memory[NUM_FRAMES];  // Simulated memory with a fixed number of frames
+    int pointer = 0;  // Clock hand pointer
+    int page_faults = 0;
+    
+    // Initialize memory
+    for (int i = 0; i < NUM_FRAMES; i++) {
+        memory[i].page_number = -1;  // -1 means empty frame
+        memory[i].reference_bit = 0;
+    }
+
+    for (int i = 0; i < num_pages; i++) {
+        int page = pages[i];
+        int page_found = 0;
+
+        // Check if the page is already in memory
+        for (int j = 0; j < NUM_FRAMES; j++) {
+            if (memory[j].page_number == page) {
+                memory[j].reference_bit = 1;  // Set reference bit if page is found
+                page_found = 1;
+                break;
+            }
+        }
+
+        if (!page_found) {
+            page_faults++;
+            
+            // Clock replacement: Find a page to replace
+            while (memory[pointer].reference_bit == 1) {
+                memory[pointer].reference_bit = 0;  // Reset reference bit
+                pointer = (pointer + 1) % NUM_FRAMES;  // Move clock hand
+            }
+
+            // Replace the page
+            memory[pointer].page_number = page;
+            memory[pointer].reference_bit = 1;  // Set reference bit
+            pointer = (pointer + 1) % NUM_FRAMES;  // Move clock hand
+        }
+
+        // Print current memory state
+        printf("Memory: ");
+        for (int j = 0; j < NUM_FRAMES; j++) {
+            if (memory[j].page_number != -1)
+                printf("%d ", memory[j].page_number);
+            else
+                printf("_ ");  // Representing an empty frame
+        }
+        printf("\n");
+    }
+
+    printf("\nTotal Page Faults: %d\n", page_faults);
+}
+
+int main() {
+    int pages[] = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 7};  // Sequence of page accesses
+    int num_pages = sizeof(pages) / sizeof(pages[0]);
+    
+    clockReplacement(pages, num_pages);
+    
+    return 0;
+}

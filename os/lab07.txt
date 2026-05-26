@@ -1,0 +1,161 @@
+Write the program in any language for the following questions:
+
+1. An inverse relationship between priority numbers and priorities: the higher the number, the lower the priority. The scheduler recalculates process priorities once per second using the following function: Priority = (recent CPU usage / 2) + base where base = 60 and recent CPU usage refers to a value indicating how often a process has used the CPU since priorities were last recalculated. Assume that recent CPU usage for process P1 is x1, for process P2 is x2, and for process P3 is x3. When priorities are recalculated, what will be the new priorities for these three processes? (Program inputs: x1, x2 and x3)
+
+#include <iostream>
+using namespace std;
+
+void calculate_priority(float x1, float x2, float x3) {
+    const int base = 60;
+    float p1 = (x1 / 2) + base;
+    float p2 = (x2 / 2) + base;
+    float p3 = (x3 / 2) + base;
+
+    cout << "New Priorities: P1 = " << p1 << ", P2 = " << p2 << ", P3 = " << p3 << endl;
+}
+
+int main() {
+    float x1, x2, x3;
+    cout << "Enter recent CPU usage for P1: ";
+    cin >> x1;
+    cout << "Enter recent CPU usage for P2: ";
+    cin >> x2;
+    cout << "Enter recent CPU usage for P3: ";
+    cin >> x3;
+
+    calculate_priority(x1, x2, x3);
+    return 0;
+}
+
+2.  Consider a preemptive priority scheduling algorithm based on dynamically changing priorities. Larger priority numbers imply higher priority. When a process waits for the CPU (in the ready queue but not running), its priority changes at a rate a; when it is running, its priority changes at a rate b. All processes are prioritised at 0 when they enter the ready queue. The parameters a and b can be set to give many different scheduling algorithms.
+a.  Write a program that results from b > a > 0.
+b.  Write a program that results from a < b < 0.
+
+#include <iostream>
+using namespace std;
+
+int simulate_priority_increase(int time, int a, int b) {
+    int priority = 0;
+    for (int t = 0; t <= time; t++) {
+        if (t % 2 == 0) {
+            priority += b;  // Running
+        } else {
+            priority += a;  // Waiting
+        }
+    }
+    return priority;
+}
+
+int main() {
+    int time, a = 1, b = 2;
+    cout << "Enter simulation time: ";
+    cin >> time;
+
+    int priority = simulate_priority_increase(time, a, b);
+    cout << "Priority after " << time << " seconds: " << priority << endl;
+    return 0;
+}
+
+3. Assume that at time 5 no system resources are being used except for the processor and memory. Now consider the following events:
+At time 5: P1 executes a command to read from disk unit 3.
+At time 15: P5’s time slice expires.
+At time 18: P7 executes a command to write to disk unit 3.
+At time 20: P3 executes a command to read from disk unit 2.
+At time 24: P5 executes a command to write to disk unit 3.
+At time 28: P5 is swapped out.
+At time 33: An interrupt occurs from disk unit 2: P3’s read is complete.
+At time 36: An interrupt occurs from disk unit 3: P1’s read is complete.
+At time 38: P8 terminates.
+At time 40: An interrupt occurs from disk unit 3: P5’s write is complete.
+At time 44: P5 is swapped back in.
+At time 48: An interrupt occurs from disk unit 3: P7’s write is complete.
+
+
+For each time x1, x2, and x3, identify which state each process is in. If a process is blocked, further identify the event on which it is blocked. (Program inputs: x1, x2 and x3)
+
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+void process_state(int x1, int x2, int x3) {
+    vector<pair<int, string>> events = {
+        {5, "P1 read from disk 3"},
+        {15, "P5 time slice expired"},
+        {18, "P7 write to disk 3"},
+        {20, "P3 read from disk 2"},
+        {24, "P5 write to disk 3"},
+        {28, "P5 swapped out"},
+        {33, "Disk 2 interrupt, P3 read complete"},
+        {36, "Disk 3 interrupt, P1 read complete"},
+        {38, "P8 terminates"},
+        {40, "Disk 3 interrupt, P5 write complete"},
+        {44, "P5 swapped back in"},
+        {48, "Disk 3 interrupt, P7 write complete"}
+    };
+
+    vector<int> times = {x1, x2, x3};
+    for (int t : times) {
+        for (const auto& event : events) {
+            if (event.first == t) {
+                cout << "At time " << t << ", Event: " << event.second << endl;
+            }
+        }
+    }
+}
+
+int main() {
+    int x1, x2, x3;
+    cout << "Enter time x1: ";
+    cin >> x1;
+    cout << "Enter time x2: ";
+    cin >> x2;
+    cout << "Enter time x3: ";
+    cin >> x3;
+
+    process_state(x1, x2, x3);
+    return 0;
+}
+4. The SJF algorithm is supposed to improve performance, but we chose to run process P1 at time 0 because we did not know that two shorter processes would arrive soon. Write a program to compute what the average turnaround time will be if the CPU is left idle for the first x unit, and then SJF scheduling is used. Remember that processes P1 and P2 are waiting during this idle time, so their waiting time may increase. This algorithm could be known as future-knowledge scheduling. (Program inputs: x)
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+float average_turnaround_time(int idle_time, vector<pair<int, int>> processes) {
+    int time = idle_time;
+    int total_turnaround_time = 0;
+
+    // Sort processes by burst time
+    sort(processes.begin(), processes.end(), [](pair<int, int> a, pair<int, int> b) {
+        return a.second < b.second;
+    });
+
+    for (const auto& process : processes) {
+        int arrival = process.first;
+        int burst = process.second;
+
+        if (time < arrival) {
+            time = arrival;
+        }
+        time += burst;
+        total_turnaround_time += time - arrival;
+    }
+
+    return static_cast<float>(total_turnaround_time) / processes.size();
+}
+
+int main() {
+    int idle_time;
+    cout << "Enter idle time: ";
+    cin >> idle_time;
+
+    // Define processes as (arrival time, burst time)
+    vector<pair<int, int>> processes = {{0, 8}, {1, 4}, {2, 2}};
+
+    float avg_turnaround = average_turnaround_time(idle_time, processes);
+    cout << "Average Turnaround Time: " << avg_turnaround << endl;
+
+    return 0;
+}

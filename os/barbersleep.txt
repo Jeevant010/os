@@ -1,0 +1,76 @@
+#include <iostream>
+#include <thread>
+#include <semaphore.h>
+#include <queue>
+#include <chrono>
+#include <random>
+
+using namespace std;
+
+// Constants
+const int MAX_CHAIRS = 3;
+
+// Semaphores
+sem_t barberReady; 
+sem_t accessSeats;   
+sem_t customerReady;
+
+int customersWaiting = 0; 
+
+void barber() {
+    while (true) {
+        sem_wait(&customerReady);  
+        sem_wait(&accessSeats);   
+        customersWaiting--;       
+        cout << "Barber starts cutting hair. Customers waiting: " << customersWaiting << "\n";
+        sem_post(&barberReady);
+        sem_post(&accessSeats);   
+        this_thread::sleep_for(chrono::seconds(2));
+        cout << "Barber finished cutting hair.\n";
+    }
+}
+
+void customer(int id) {
+    sem_wait(&accessSeats); 
+    if (customersWaiting < MAX_CHAIRS) {
+        customersWaiting++; 
+        cout << "Customer " << id << " is waiting. Customers waiting: " << customersWaiting << "\n";
+        sem_post(&customerReady);  
+        sem_post(&accessSeats);    
+        sem_wait(&barberReady);   
+        cout << "Customer " << id << " is getting a haircut.\n";
+    } else {
+        cout << "Customer " << id << " left (no available chairs).\n";
+        sem_post(&accessSeats); 
+    }
+}
+
+int main() {
+    // Initialize semaphores
+    sem_init(&barberReady, 0, 0);
+    sem_init(&accessSeats, 0, 1);
+    sem_init(&customerReady, 0, 0);
+
+    thread barberThread(barber);
+
+    vector<thread> customers;
+    for (int i = 1; i <= 10; ++i) {
+        this_thread::sleep_for(chrono::milliseconds(rand() % 1500)); // Random arrival time
+        customers.push_back(thread(customer, i));
+    }
+
+  
+    for (auto& cust : customers) {
+        cust.join();
+    }
+
+    
+    barberThread.detach();
+
+   
+    sem_destroy(&barberReady);
+    sem_destroy(&accessSeats);
+    sem_destroy(&customerReady);
+
+    return 0;
+}

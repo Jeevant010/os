@@ -1,0 +1,86 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
+#define MAX_PAGES 5        // Maximum number of pages that can be loaded into memory
+#define TOTAL_PAGES 10     // Total number of pages in the process
+#define PAGE_SIZE 1024     // Size of each page (simulated as an integer array)
+
+// Simulating the Disk (Secondary Storage)
+int disk[TOTAL_PAGES][PAGE_SIZE];
+
+// Page table: 1 for loaded in memory, 0 for not loaded
+int page_table[TOTAL_PAGES] = {0}; 
+
+// Simulating RAM (Memory)
+int memory[MAX_PAGES][PAGE_SIZE];
+
+// Function to simulate loading a page from disk to memory
+void load_page_from_disk(int page_number) {
+    // Find an empty frame in memory
+    int frame_number = -1;
+    for (int i = 0; i < MAX_PAGES; i++) {
+        if (page_table[i] == 0) {
+            frame_number = i;
+            break;
+        }
+    }
+
+    if (frame_number == -1) {
+        printf("Memory is full. Evicting a page...\n");
+
+        // If no free frame, evict the first page (simple FIFO replacement)
+        frame_number = 0;
+        printf("Evicting page %d from memory.\n", page_table[frame_number]);
+    }
+
+    // Simulate loading the page from disk to memory
+    printf("Loading page %d from disk to memory (Frame %d)\n", page_number, frame_number);
+    memcpy(memory[frame_number], disk[page_number], sizeof(disk[page_number]));
+
+    // Update the page table to indicate the page is loaded in memory
+    page_table[frame_number] = page_number;
+}
+
+// Function to access a page (simulating page access)
+void access_page(int page_number) {
+    int found_in_memory = 0;
+
+    // Check if the page is in memory by checking the page table
+    for (int i = 0; i < MAX_PAGES; i++) {
+        if (page_table[i] == page_number) {
+            found_in_memory = 1;
+            printf("Accessing page %d in memory (Frame %d)\n", page_number, i);
+            break;
+        }
+    }
+
+    // If the page is not in memory, simulate a page fault and load it
+    if (!found_in_memory) {
+        printf("Page fault occurred for page %d.\n", page_number);
+        load_page_from_disk(page_number);
+    }
+}
+
+int main() {
+    // Initialize the simulated disk with random data (just for simulation purposes)
+    for (int i = 0; i < TOTAL_PAGES; i++) {
+        for (int j = 0; j < PAGE_SIZE; j++) {
+            disk[i][j] = i * PAGE_SIZE + j;  // Just some arbitrary data
+        }
+    }
+
+    // Access some pages to simulate demand paging
+    access_page(2);  // This will cause a page fault for page 2
+    access_page(3);  // This will cause a page fault for page 3
+    access_page(5);  // This will cause a page fault for page 5
+    access_page(2);  // This will access page 2 which is now in memory
+    access_page(8);  // This will cause a page fault for page 8
+
+    // Simulate memory being full, with eviction
+    access_page(9);  // This will cause a page fault for page 9 and might evict a page
+
+    return 0;
+}
+

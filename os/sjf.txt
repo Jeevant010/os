@@ -1,0 +1,51 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+void sjf(int n, int burst[], int arrival[]) {
+    int wait[n], tat[n], total_wait = 0, total_tat = 0;
+    bool completed[n];
+    for (int i = 0; i < n; i++) completed[i] = false;
+
+    int current_time = 0, completed_count = 0;
+
+    while (completed_count < n) {
+        int shortest_job = -1, min_burst = 1e9;
+        for (int i = 0; i < n; i++) {
+            if (!completed[i] && arrival[i] <= current_time && burst[i] < min_burst) {
+                min_burst = burst[i];
+                shortest_job = i;
+            }
+        }
+
+        if (shortest_job == -1) {
+            current_time++;
+            continue;
+        }
+
+        wait[shortest_job] = current_time - arrival[shortest_job];
+        tat[shortest_job] = wait[shortest_job] + burst[shortest_job];
+        current_time += burst[shortest_job];
+        completed[shortest_job] = true;
+        completed_count++;
+        total_wait += wait[shortest_job];
+        total_tat += tat[shortest_job];
+    }
+
+    printf("Process\tArrival\tBurst\tWaiting\tTurn-Around\n");
+    for (int i = 0; i < n; i++) {
+        printf("P%d\t%d\t%d\t%d\t%d\n", i + 1, arrival[i], burst[i], wait[i], tat[i]);
+    }
+    printf("Average Waiting Time: %.2f\n", (float)total_wait / n);
+    printf("Average Turn-Around Time: %.2f\n", (float)total_tat / n);
+}
+
+int main() {
+    int n = 4;
+    int burst[] = {7, 2, 8, 3};
+    int arrival[] = {0, 1, 2, 3};
+
+    printf("Shortest Job First Scheduling\n");
+    sjf(n, burst, arrival);
+
+    return 0;
+}
